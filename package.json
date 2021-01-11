@@ -1,6 +1,6 @@
 {
   "name": "@jamshop/eleventy-plugin-tailwind",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
   "description": "A boilerplate for 11ty projects. It is ABSOLUTELY empty.",
