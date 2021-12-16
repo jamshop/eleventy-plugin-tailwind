@@ -7,6 +7,16 @@ body {
   padding: 0;
   min-height: 100vh;
 } 
+
+@keyframes pulse {
+  from {
+    background: #ffd1d1;
+  }
+  to {
+    background: #ffa6a6;
+  }
+}
+
 body::before { 
   content: ''; 
   background: white;
@@ -24,9 +34,13 @@ body::after {
   top: 0; 
   padding: 30px;
   margin: 30px;
-  width: calc(100% - 60px);
+  width: calc(100% - 120px);
   background: #ffd1d1;
   border: solid 1px red;
   opacity: 0.9;
   position: fixed;
+  animation-duration: 1s;
+  animation-name: pulse;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }`;
