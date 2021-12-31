@@ -33,27 +33,37 @@ const minifyCSS = (css) => {
   return minified.styles;
 };
 
-const getTailwindConfig = ({ inputDir, tailwindConfig = {} }) => ({
-  mode: 'jit',
+const getTailwindConfig = ({ inputDir, tailwindConfig = {} }) => {
+  const config = ({
+    mode: 'jit',
+    ...tailwindConfigFile,
+    ...tailwindConfig,
+  });
+
+  // If no content or purge options are provided use the default
   // We're returning purge for now to support older versions.
   // ToDo: change to 'content' when we drop support for v2.
-  purge: [
-    `${inputDir}/**/*.html`,
-    `${inputDir}/**/*.js`,
-    `${inputDir}/**/*.ts`,
-    `${inputDir}/**/*.vue`,
-    `${inputDir}/**/*.jsx`,
-    `${inputDir}/**/*.tsx`,
-    `${inputDir}/**/*.mdx`,
-    `${inputDir}/**/*.md`,
-    `${inputDir}/**/*.njk`,
-    `${inputDir}/**/*.hbs`,
-    `${inputDir}/**/*.liquid`,
-  ],
-  ...tailwindConfigFile,
-  ...tailwindConfig,
-})
+  if(!config.purge && !config.content) { 
+    return { 
+      purge: [
+        `${inputDir}/**/*.html`,
+        `${inputDir}/**/*.js`,
+        `${inputDir}/**/*.ts`,
+        `${inputDir}/**/*.vue`,
+        `${inputDir}/**/*.jsx`,
+        `${inputDir}/**/*.tsx`,
+        `${inputDir}/**/*.mdx`,
+        `${inputDir}/**/*.md`,
+        `${inputDir}/**/*.njk`,
+        `${inputDir}/**/*.hbs`,
+        `${inputDir}/**/*.liquid`,
+      ],
+      ...config 
+    }
+  }
 
+  return config;
+}
 
 // Add a function to add new @imports found when compiling CSS
 const trackCSSDeps = (newCSSDeps) => {
@@ -85,7 +95,7 @@ const compileTailwind = async (options) => {
       .filter(message => (message.type === 'dependency' && message.plugin === 'postcss-import'))
       .map(imp => imp.file);
 
-      trackCSSDeps(imports);
+    trackCSSDeps(imports);
 
   } catch (error) {
     result = {
@@ -124,15 +134,14 @@ const tailwindPlugin = async (eleventyConfig, options = {}) => {
     return;
   }
 
-  getTailwindConfig(options);
 
   // Add the entry to the watch list
   eleventyConfig.addWatchTarget(options.entry);
-  
-  compileTailwind(options);
 
   eleventyConfig.on("beforeWatch", (changedFiles) => {
 
+    const tailwindConfig = getTailwindConfig(options);
+    const purgeOptions = tailwindConfig.purge || tailwindConfig.content || [];
     // We're doing a lot of work here to make sure that we are not re-compiling CSS unless the changes files include:
     // CSS, CSS dependencies, or purge enteries from the tailwind config.
     // For future consideration: Tailwind v3+ with JIT is probably fast enough that there would be minimal cost to re-compiling everytime...?
@@ -144,7 +153,7 @@ const tailwindPlugin = async (eleventyConfig, options = {}) => {
     if (
       changedFiles.find((file) => isEntry(file) || isDep(file) || isPurge(file))
     ) {
-     compileTailwind(options);
+      compileTailwind(options);
     }
   });
 };
