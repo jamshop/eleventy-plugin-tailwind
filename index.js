@@ -156,6 +156,9 @@ const tailwindPlugin = async (eleventyConfig, options = {}) => {
       compileTailwind(options);
     }
   });
+  
+  // Compile on init
+  compileTailwind(options);
 };
 
 module.exports = tailwindPlugin;
